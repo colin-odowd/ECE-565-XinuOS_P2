@@ -109,3 +109,20 @@ syscall kprintf(char *fmt, ...)
 	va_end(ap);
 	return OK;
 }
+
+
+/*------------------------------------------------------------------------
+ * print_ready_list  -  print the PIDs of the processes in the ready list 
+ *------------------------------------------------------------------------
+ */
+syscall print_ready_list(qid16 q)
+{
+	qid16	curr;
+
+	curr = firstid(q);
+	while (queuetab[curr].qnext != NULL) {
+		kprintf(queuetab[curr].qnext);
+		curr = queuetab[curr].qnext;
+	}
+	return OK;
+}
