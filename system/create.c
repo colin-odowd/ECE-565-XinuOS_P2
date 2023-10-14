@@ -156,6 +156,9 @@ pid32	create_user_process(
 	/* Set to user process */
 	prptr->user_process = TRUE;
 
+	/* Set number of tickets to zero */
+	prptr->tickets = 0;
+
 	/* Initialize process timing metrics */
 	prptr->runtime = 0;
 	prptr->turnaroundtime = 0;
@@ -201,6 +204,16 @@ pid32	create_user_process(
 	*pushsp = (unsigned long) (prptr->prstkptr = (char *)saddr);
 	restore(mask);
 	return pid;
+}
+
+
+/*------------------------------------------------------------------------
+ *  set_tickets  -  initialize or modify the number of tickets
+ *------------------------------------------------------------------------
+ */
+void set_tickets(pid32 pid, uint32 tickets)
+{
+	proctab[pid].tickets = tickets;
 }
 
 
