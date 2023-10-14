@@ -9,7 +9,11 @@
 void	clkhandler()
 {
 	static	uint32	count1000 = 1000;	/* Count to 1000 ms	*/
+	uint32 i;
 
+	/* Increment the time since boot ms counter */
+	ctr1000++;
+	
 	/* Decrement the ms counter, and see if a second has passed */
 
 	if((--count1000) <= 0) {
@@ -32,6 +36,15 @@ void	clkhandler()
 
 		if((--queuetab[firstid(sleepq)].qkey) <= 0) {
 			wakeup();
+		}
+	}
+
+	/* Update the turnaround time of all active processes */
+	for (i = 0; i < NPROC; i++)
+	{
+		if (proctab[i].prstate != PR_FREE)
+		{
+			proctab[i].turnaroundtime++;
 		}
 	}
 

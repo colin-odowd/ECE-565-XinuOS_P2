@@ -120,9 +120,12 @@ syscall print_ready_list(qid16 q)
 	qid16	curr;
 
 	curr = firstid(q);
-	while (queuetab[curr].qnext != NULL) {
-		kprintf(queuetab[curr].qnext);
+	kprintf("PIDs in ready list: ");
+	
+	while (curr != EMPTY) {
+		kprintf("%d ", curr);
 		curr = queuetab[curr].qnext;
 	}
+	kprintf("\n");
 	return OK;
 }
