@@ -214,6 +214,7 @@ pid32	create_user_process(
 void set_tickets(pid32 pid, uint32 tickets)
 {
 	proctab[pid].tickets = tickets;
+	totaltickets += tickets;
 }
 
 

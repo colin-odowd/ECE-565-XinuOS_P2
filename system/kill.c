@@ -21,6 +21,11 @@ syscall	kill(
 		return SYSERR;
 	}
 
+	if (prptr->user_process == TRUE)
+	{
+		totaltickets -= prptr->tickets;
+	}
+
 	if (--prcount <= 1) {		/* Last user process completes	*/
 		xdone();
 	}

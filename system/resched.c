@@ -1,10 +1,13 @@
 /* resched.c - resched, resched_cntl */
 
 #include <xinu.h>
+#include <stdlib.h>
 
 #define DEBUG_CTXSW
 
 struct	defer	Defer;
+
+uint32 	totaltickets;	/* Total ticket count for all user processes */
 
 /*------------------------------------------------------------------------
  *  resched  -  Reschedule processor to highest priority eligible process
@@ -15,9 +18,11 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	struct procent *ptold;	/* Ptr to table entry for old process	*/
 	struct procent *ptnew;	/* Ptr to table entry for new process	*/
 	pid32  old_pid;
-	
-	/* If rescheduling is deferred, record attempt and return */
+	uint32 counter = 0;
+	uint32 winner = 0;
+	qid16  curr;
 
+	/* If rescheduling is deferred, record attempt and return */
 	if (Defer.ndefers > 0) {
 		Defer.attempt = TRUE;
 		return;
@@ -39,6 +44,20 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 
 		ptold->prstate = PR_READY;
 		insert(currpid, readylist, ptold->prprio);
+	}
+
+	if (isempty(readylist)) 
+	{
+		// winner: use some call to a random number generator to
+		// get a value, between 0 and the total # of tickets
+		winner = rand() % totaltickets;
+		curr = firstid(readylist_user);
+		while (curr != EMPTY)
+		{
+			counter = counter + queuetab[curr].qkey;
+			if (counter > winner) break;
+			curr = queuetab[curr].qnext;
+		}
 	}
 
 	/* Force context switch to highest priority ready process */

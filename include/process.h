@@ -65,3 +65,5 @@ struct procent {		/* Entry in the process table		*/
 extern	struct	procent proctab[];
 extern	int32	prcount;	/* Currently active processes		*/
 extern	pid32	currpid;	/* Currently executing process		*/
+
+extern  uint32 	totaltickets; /* Total ticket count for all user processes */
