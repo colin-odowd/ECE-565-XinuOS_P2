@@ -25,7 +25,7 @@ status	ready(
 	prptr->prstate = PR_READY;
 	if (prptr->user_process == TRUE)
 	{
-		insert(pid, readylist_user, prptr->prprio);
+		insert(pid, readylist_user, prptr->tickets);
 	}
 	else 
 	{

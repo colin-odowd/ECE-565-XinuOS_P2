@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "xinu.h": "c"
+        "xinu.h": "c",
+        "queue.h": "c"
     }
 }

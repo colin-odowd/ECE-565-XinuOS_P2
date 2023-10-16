@@ -7,8 +7,6 @@
 
 struct	defer	Defer;
 
-uint32 	totaltickets;	/* Total ticket count for all user processes */
-
 /*------------------------------------------------------------------------
  *  resched  -  Reschedule processor to highest priority eligible process
  *------------------------------------------------------------------------
@@ -21,6 +19,8 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	uint32 counter = 0;
 	uint32 winner = 0;
 	qid16  curr;
+	uint32 totaltickets = 0;
+	uint32 lottery_processes = 0;
 
 	/* If rescheduling is deferred, record attempt and return */
 	if (Defer.ndefers > 0) {
@@ -33,43 +33,72 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	old_pid = currpid;
 
 	if (ptold->prstate == PR_CURR) {  /* Process remains eligible */
-		
-		ptold->runtime++;
 
-		if (ptold->prprio > firstkey(readylist)) {
+		ptold->runtime++;
+		
+		if ((ptold->prprio > firstkey(readylist)) && 
+		    (currpid != ((pid32)(0))))
+		{
 			return;
 		}
+		else if ((ptold->user_process == TRUE) &&
+				 (isempty(readylist_user)))
+        {
+        	return;
+        }
 
 		/* Old process will no longer remain current */
-
 		ptold->prstate = PR_READY;
-		insert(currpid, readylist, ptold->prprio);
-	}
-
-	if (isempty(readylist)) 
-	{
-		// winner: use some call to a random number generator to
-		// get a value, between 0 and the total # of tickets
-		winner = rand() % totaltickets;
-		curr = firstid(readylist_user);
-		while (curr != EMPTY)
+		if (ptold->user_process == TRUE)
 		{
-			counter = counter + queuetab[curr].qkey;
-			if (counter > winner) break;
-			curr = queuetab[curr].qnext;
+			insert(currpid, readylist_user, ptold->tickets);
+		}
+		else 
+		{
+			insert(currpid, readylist, ptold->prprio);
 		}
 	}
 
-	/* Force context switch to highest priority ready process */
+	if ((isempty(readylist_user) == 0) &&
+		(queuetab[firstid(readylist)].qnext == queuetail(readylist)))
+	{ 
+		curr = firstid(readylist_user);
+		while (curr != queuetail(readylist_user))
+		{
+			totaltickets += queuetab[curr].qkey;
+			//lottery_processes++;
+			curr = queuetab[curr].qnext;
+		}
 
-	currpid = dequeue(readylist);
+		//if (lottery_processes > 1)
+		//{
+			winner = rand() % totaltickets;
+			curr = firstid(readylist_user);
+			while (curr != queuetail(readylist_user))
+			{
+				counter = counter + queuetab[curr].qkey;
+				if (counter > winner) break;
+				curr = queuetab[curr].qnext;
+			}
+			queuetab[queuetab[curr].qprev].qnext = queuetab[curr].qnext;
+			queuetab[queuetab[curr].qnext].qprev = queuetab[curr].qprev;
+			queuetab[curr].qnext = EMPTY;
+			queuetab[curr].qprev = EMPTY;	
+		//}
+		currpid = curr;
+	}
+	else 
+	{
+		currpid = dequeue(readylist);
+	}
+
 	ptnew = &proctab[currpid];
-	ptnew->num_ctxsw++;
+	if (currpid != old_pid) ptnew->num_ctxsw++;
 	ptnew->prstate = PR_CURR;
 	preempt = QUANTUM;		/* Reset time slice for process	*/
 
 	#ifdef DEBUG_CTXSW
-		kprintf("ctxsw::%d-%d\n", old_pid, currpid);
+		if (currpid != old_pid) kprintf("ctxsw::%d-%d\n", old_pid, currpid);
 	#endif
 
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);

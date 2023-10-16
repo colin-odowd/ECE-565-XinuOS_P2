@@ -6,17 +6,14 @@
  *  burst_execution  -  simulates alternate execution phases
  *------------------------------------------------------------------------
  */
-void burst_execution(
-     uint32 number_bursts, 
-     uint32 burst_duration,
-     uint32 sleep_duration)
+void burst_execution(uint32 number_bursts, 
+                     uint32 burst_duration, 
+                     uint32 sleep_duration)
 {
-    uint32 i;
-
-    for (i = 0; i < number_bursts; i++)
-    {
-        while(proctab[currpid].runtime<((i+1)*burst_duration));
-        sleepms(burst_duration);
+    int i;
+    for(i=0; i<number_bursts;i++){
+        while(proctab[currpid].runtime<(burst_duration*(i+1)));
+        sleepms(sleep_duration);
     }
-
 }
+
