@@ -18,6 +18,7 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	pid32  old_pid;
 	uint32 counter = 0;
 	uint32 winner = 0;
+	qid16  user_head;
 	qid16  curr;
 	uint32 totaltickets = 0;
 	uint32 lottery_processes = 0;
@@ -31,23 +32,24 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	/* Point to process table entry for the current (old) process */
 	ptold = &proctab[currpid];
 	old_pid = currpid;
+	user_head = firstid(readylist_user);
 
 	if (ptold->prstate == PR_CURR) {  /* Process remains eligible */
 
 		ptold->runtime++;
 		
-		if ((ptold->prprio > firstkey(readylist)) && 
-		    (currpid != ((pid32)(0))))
+		if (ptold->prprio > firstkey(readylist))
 		{
 			return;
 		}
-		else if ((ptold->user_process == TRUE) &&
-				 (isempty(readylist_user)))
-        {
-        	return;
-        }
 
-		/* Old process will no longer remain current */
+		if ((queuetab[firstid(readylist)].qnext == queuetail(readylist)) &&
+			(isempty(readylist_user) == 1) &&
+			(ptold->user_process == TRUE))
+		{
+			return;
+		}
+		
 		ptold->prstate = PR_READY;
 		if (ptold->user_process == TRUE)
 		{
@@ -57,35 +59,44 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 		{
 			insert(currpid, readylist, ptold->prprio);
 		}
+		
 	}
 
-	if ((isempty(readylist_user) == 0) &&
-		(queuetab[firstid(readylist)].qnext == queuetail(readylist)))
+
+	if (queuetab[firstid(readylist)].qnext != queuetail(readylist))
+	{
+		currpid = dequeue(readylist);
+	}
+	else if ((isempty(readylist_user) == 0))
 	{ 
-		curr = firstid(readylist_user);
+		curr = user_head;
 		while (curr != queuetail(readylist_user))
 		{
 			totaltickets += queuetab[curr].qkey;
-			//lottery_processes++;
+			lottery_processes++;
 			curr = queuetab[curr].qnext;
 		}
 
-		//if (lottery_processes > 1)
-		//{
+		if (lottery_processes > 1)
+		{
 			winner = rand() % totaltickets;
-			curr = firstid(readylist_user);
+			curr = user_head;
 			while (curr != queuetail(readylist_user))
 			{
 				counter = counter + queuetab[curr].qkey;
 				if (counter > winner) break;
 				curr = queuetab[curr].qnext;
 			}
-			queuetab[queuetab[curr].qprev].qnext = queuetab[curr].qnext;
-			queuetab[queuetab[curr].qnext].qprev = queuetab[curr].qprev;
-			queuetab[curr].qnext = EMPTY;
-			queuetab[curr].qprev = EMPTY;	
-		//}
-		currpid = curr;
+			currpid = curr;
+		}
+		else
+		{
+			currpid = user_head;
+		}
+		queuetab[queuetab[currpid].qprev].qnext = queuetab[currpid].qnext;
+		queuetab[queuetab[currpid].qnext].qprev = queuetab[currpid].qprev;
+		queuetab[currpid].qnext = EMPTY;
+		queuetab[currpid].qprev = EMPTY;	
 	}
 	else 
 	{
@@ -95,7 +106,7 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	ptnew = &proctab[currpid];
 	if (currpid != old_pid) ptnew->num_ctxsw++;
 	ptnew->prstate = PR_CURR;
-	preempt = QUANTUM;		/* Reset time slice for process	*/
+	preempt = QUANTUM;		
 
 	#ifdef DEBUG_CTXSW
 		if (currpid != old_pid) kprintf("ctxsw::%d-%d\n", old_pid, currpid);
