@@ -122,7 +122,7 @@ syscall print_ready_list(qid16 q)
 	curr = firstid(q);
 	kprintf("PIDs in ready list: ");
 	
-	while (curr != EMPTY) {
+	while (curr != queuetail(readylist_user)) {
 		kprintf("%d ", curr);
 		curr = queuetab[curr].qnext;
 	}

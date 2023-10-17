@@ -161,7 +161,7 @@ pid32	create_user_process(
 
 	/* Initialize process timing metrics */
 	prptr->runtime = 0;
-	prptr->turnaroundtime = 0;
+	prptr->turnaroundtime = ctr1000;
 	prptr->num_ctxsw = 0;
 
 	/* Initialize stack as if the process was called		*/

@@ -18,7 +18,6 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	pid32  old_pid;
 	uint32 counter = 0;
 	uint32 winner = 0;
-	qid16  user_head;
 	qid16  curr;
 	uint32 totaltickets = 0;
 	uint32 lottery_processes = 0;
@@ -32,7 +31,6 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	/* Point to process table entry for the current (old) process */
 	ptold = &proctab[currpid];
 	old_pid = currpid;
-	user_head = firstid(readylist_user);
 
 	if (ptold->prstate == PR_CURR) {  /* Process remains eligible */
 		
@@ -54,18 +52,18 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	}
 	else if ((isempty(readylist_user) == 0))
 	{ 
-		curr = user_head;
+		curr = firstid(readylist_user);
 		while (curr != queuetail(readylist_user))
 		{
 			totaltickets += queuetab[curr].qkey;
 			lottery_processes++;
 			curr = queuetab[curr].qnext;
 		}
-
 		if (lottery_processes > 1)
 		{
+
 			winner = rand() % totaltickets;
-			curr = user_head;
+			curr = firstid(readylist_user);
 			while (curr != queuetail(readylist_user))
 			{
 				counter = counter + queuetab[curr].qkey;
