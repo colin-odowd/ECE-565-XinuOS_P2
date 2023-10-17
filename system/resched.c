@@ -46,10 +46,12 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 		
 	}
 
+	/* Case 1: Process in System Queue (exlcuding NULL process) */
 	if (firstkey(readylist) != (pid32)(0))
 	{
 		currpid = dequeue(readylist);
 	}
+	/* Case 2: Process in User Queue, perform lottery */
 	else if ((isempty(readylist_user) == 0))
 	{ 
 		curr = firstid(readylist_user);
@@ -81,6 +83,7 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 			currpid = dequeue(readylist_user);
 		}
 	}
+	/* Case 3: No processes in either queue, execute NULL process  */
 	else 
 	{
 		currpid = dequeue(readylist);
