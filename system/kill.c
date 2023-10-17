@@ -21,6 +21,8 @@ syscall	kill(
 		return SYSERR;
 	}
 
+	proctab[currpid].turnaroundtime = ctr1000 - proctab[currpid].create_time;
+
 	if (--prcount <= 1) {		/* Last user process completes	*/
 		xdone();
 	}

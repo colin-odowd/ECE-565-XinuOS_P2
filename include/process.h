@@ -52,6 +52,7 @@ struct procent {		/* Entry in the process table		*/
 	umsg32	prmsg;		/* Message sent to this process		*/
 	bool8	prhasmsg;	/* Nonzero iff msg is valid		*/
 	int16	prdesc[NDESC];	/* Device descriptors for process	*/
+	uint32  create_time; /* Sets time process was created */
 	bool8 	user_process; /* Sets process type */
 	uint32 	tickets;    /* Sets the number of tickets for process */
 	uint32  runtime;    /* number of milliseconds the process has been running (i.e., in PR_CURR state) */

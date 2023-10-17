@@ -9,10 +9,11 @@
 void	clkhandler()
 {
 	static	uint32	count1000 = 1000;	/* Count to 1000 ms	*/
-	uint32 i;
 
 	/* Increment the time since boot ms counter */
 	ctr1000++;
+
+	proctab[currpid].runtime++;
 	
 	/* Decrement the ms counter, and see if a second has passed */
 
@@ -38,16 +39,7 @@ void	clkhandler()
 			wakeup();
 		}
 	}
-
-	/* Update the turnaround time of all active processes */
-	for (i = 0; i < NPROC; i++)
-	{
-		if (proctab[i].prstate != PR_FREE)
-		{
-			proctab[i].turnaroundtime++;
-		}
-	}
-
+	
 	/* Decrement the preemption counter, and reschedule when the */
 	/*   remaining time reaches zero			     */
 

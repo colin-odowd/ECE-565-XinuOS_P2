@@ -35,25 +35,11 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	user_head = firstid(readylist_user);
 
 	if (ptold->prstate == PR_CURR) {  /* Process remains eligible */
-
-		ptold->runtime++;
-		
-		if (ptold->prprio > firstkey(readylist))
-		{
-			return;
-		}
-
-		if ((queuetab[firstid(readylist)].qnext == queuetail(readylist)) &&
-			(isempty(readylist_user) == 1) &&
-			(ptold->user_process == TRUE))
-		{
-			return;
-		}
 		
 		ptold->prstate = PR_READY;
 		if (ptold->user_process == TRUE)
 		{
-			insert(currpid, readylist_user, ptold->tickets);
+			insert_user(currpid, readylist_user, ptold->tickets);
 		}
 		else 
 		{
@@ -62,8 +48,7 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 		
 	}
 
-
-	if (queuetab[firstid(readylist)].qnext != queuetail(readylist))
+	if (firstkey(readylist) != (pid32)(0))
 	{
 		currpid = dequeue(readylist);
 	}
@@ -88,15 +73,15 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 				curr = queuetab[curr].qnext;
 			}
 			currpid = curr;
+			queuetab[queuetab[currpid].qprev].qnext = queuetab[currpid].qnext;
+			queuetab[queuetab[currpid].qnext].qprev = queuetab[currpid].qprev;
+			queuetab[currpid].qnext = EMPTY;
+			queuetab[currpid].qprev = EMPTY;	
 		}
 		else
 		{
-			currpid = user_head;
+			currpid = dequeue(readylist_user);
 		}
-		queuetab[queuetab[currpid].qprev].qnext = queuetab[currpid].qnext;
-		queuetab[queuetab[currpid].qnext].qprev = queuetab[currpid].qprev;
-		queuetab[currpid].qnext = EMPTY;
-		queuetab[currpid].qprev = EMPTY;	
 	}
 	else 
 	{
